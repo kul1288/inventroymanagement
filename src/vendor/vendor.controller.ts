@@ -38,6 +38,7 @@ export class VendorController {
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async remove(@Param('id') id: string) {
-        return this.vendorService.remove(+id);
+        await this.vendorService.remove(+id);
+        return { message: 'Vendor deleted successfully' };
     }
 }

@@ -7,6 +7,8 @@ import { LoginModule } from './login/login.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { VendorModule } from './vendor/vendor.module';
+import { ProductModule } from './product/product.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -30,6 +32,7 @@ import { VendorModule } from './vendor/vendor.module';
     AuthModule,
     UserModule,
     VendorModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
