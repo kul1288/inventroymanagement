@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity()
 export class Product {
@@ -6,6 +6,7 @@ export class Product {
     id: number;
 
     @Column({ unique: true })
+    @Index()
     partNo: string;
 
     @Column()
