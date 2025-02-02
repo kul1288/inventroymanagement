@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsDate, ValidateNested, IsArray, IsString, Validate, IsBoolean, IsOptional, IsEnum, ArrayNotEmpty, ArrayUnique } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsDate, ValidateNested, IsArray, IsString, Validate, IsBoolean, IsOptional, IsEnum, ArrayNotEmpty, ArrayUnique, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { IsBeforeToday } from '../../validators/is-before-today.validator';
 import { InvoiceType } from '../purchase-invoice.entity';
@@ -18,6 +18,7 @@ class PurchaseInvoiceProductDto {
 
     @IsNotEmpty()
     @IsNumber()
+    @Max(100, { message: 'Discount should not be greater than 100' })
     discount: number;
 }
 

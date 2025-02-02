@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Vendor } from '../vendor/vendor.entity';
 import { PurchaseInvoiceProduct } from './purchase-invoice-product.entity';
 
@@ -31,4 +31,10 @@ export class PurchaseInvoice {
 
     @OneToMany(() => PurchaseInvoiceProduct, purchaseInvoiceProduct => purchaseInvoiceProduct.purchaseInvoice, { cascade: true })
     products: PurchaseInvoiceProduct[];
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    modifiedAt: Date;
 }

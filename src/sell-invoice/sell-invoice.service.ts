@@ -1,0 +1,181 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource, Not } from 'typeorm';
+import { SellInvoice, InvoiceType } from './sell-invoice.entity';
+import { SellInvoiceProduct } from './sell-invoice-product.entity';
+import { CreateSellInvoiceDto } from './dto/create-sell-invoice.dto';
+import { ReturnSellInvoiceDto } from './dto/return-sell-invoice.dto';
+import { Product } from '../product/product.entity';
+import { PurchaseInvoiceProduct } from '../purchase-invoice/purchase-invoice-product.entity';
+import { ReturnHistory } from '../return-history/return-history.entity';
+
+@Injectable()
+export class SellInvoiceService {
+    constructor(
+        @InjectRepository(SellInvoice)
+        private sellInvoiceRepository: Repository<SellInvoice>,
+        @InjectRepository(Product)
+        private productRepository: Repository<Product>,
+        private dataSource: DataSource,
+    ) { }
+
+    async create(createSellInvoiceDto: CreateSellInvoiceDto): Promise<SellInvoice> {
+        const { customer, sellDate, tax, type, products } = createSellInvoiceDto;
+
+        return await this.dataSource.transaction(async manager => {
+            const sellInvoice = new SellInvoice();
+            sellInvoice.customerName = customer.name;
+            sellInvoice.customerPhoneNumber = customer.phoneNumber ?? '';
+            sellInvoice.customerEmail = customer.email ?? '';
+            sellInvoice.customerAddress = customer.address ?? '';
+            sellInvoice.sellDate = new Date(sellDate);
+            sellInvoice.tax = tax ? 18 : 0;
+            sellInvoice.type = type;
+            sellInvoice.products = [];
+
+            for (const productDto of products) {
+                const product = await manager.findOne(Product, { where: { id: productDto.productId } });
+                if (!product || product.currentStock < productDto.quantity) {
+                    throw new BadRequestException('Insufficient stock for product ID ' + productDto.productId);
+                }
+
+                let remainingQuantity = productDto.quantity;
+                const purchaseInvoiceProducts = await manager.find(PurchaseInvoiceProduct, {
+                    where: { product: { id: productDto.productId }, remainingQuantity: Not(0) },
+                    order: { id: 'ASC' }
+                });
+
+                for (const purchaseInvoiceProduct of purchaseInvoiceProducts) {
+                    if (remainingQuantity <= 0) break;
+
+                    const deductQuantity = Math.min(purchaseInvoiceProduct.remainingQuantity, remainingQuantity);
+                    purchaseInvoiceProduct.remainingQuantity -= deductQuantity;
+                    remainingQuantity -= deductQuantity;
+                    await manager.save(purchaseInvoiceProduct);
+                }
+
+                const sellInvoiceProduct = new SellInvoiceProduct();
+                sellInvoiceProduct.product = { id: productDto.productId } as any;
+                sellInvoiceProduct.quantity = productDto.quantity;
+                sellInvoiceProduct.rate = productDto.rate;
+                sellInvoiceProduct.discount = productDto.discount;
+                sellInvoice.products.push(sellInvoiceProduct);
+
+                product.currentStock -= productDto.quantity;
+                await manager.save(product);
+            }
+
+            return await manager.save(sellInvoice);
+        });
+    }
+
+    async delete(id: number): Promise<void> {
+        return await this.dataSource.transaction(async manager => {
+            const sellInvoice = await manager.findOne(SellInvoice, { where: { id }, relations: ['products', 'products.product'] });
+            if (!sellInvoice) {
+                throw new NotFoundException('Sell invoice not found');
+            }
+
+            for (const sellInvoiceProduct of sellInvoice.products) {
+                const product = await manager.findOne(Product, { where: { id: sellInvoiceProduct.product.id } });
+                if (product) {
+                    product.currentStock += sellInvoiceProduct.quantity;
+                    await manager.save(product);
+                }
+
+                const purchaseInvoiceProducts = await manager.find(PurchaseInvoiceProduct, {
+                    where: { product: { id: sellInvoiceProduct.product.id } },
+                    order: { id: 'DESC' }
+                });
+
+                let remainingQuantity = sellInvoiceProduct.quantity;
+                for (const purchaseInvoiceProduct of purchaseInvoiceProducts) {
+                    if (remainingQuantity <= 0) break;
+
+                    const availableSpace = purchaseInvoiceProduct.quantity - purchaseInvoiceProduct.remainingQuantity;
+                    const addQuantity = Math.min(availableSpace, remainingQuantity);
+                    purchaseInvoiceProduct.remainingQuantity += addQuantity;
+                    remainingQuantity -= addQuantity;
+                    await manager.save(purchaseInvoiceProduct);
+                }
+            }
+
+            await manager.remove(sellInvoice.products);
+            await manager.remove(sellInvoice);
+        });
+    }
+
+    async findAll(page: number = 1, limit: number = 10, startDate?: string, endDate?: string): Promise<{ data: SellInvoice[], count: number }> {
+        const query = this.sellInvoiceRepository.createQueryBuilder('sellInvoice')
+            .leftJoinAndSelect('sellInvoice.products', 'products')
+            .leftJoinAndSelect('products.product', 'product')
+            .skip((page - 1) * limit)
+            .take(limit);
+
+        if (startDate) {
+            query.andWhere('sellInvoice.sellDate >= :startDate', { startDate });
+        }
+
+        if (endDate) {
+            query.andWhere('sellInvoice.sellDate <= :endDate', { endDate });
+        }
+
+        const [data, count] = await query.getManyAndCount();
+        return { data, count };
+    }
+
+    async returnProduct(returnSellInvoiceDto: ReturnSellInvoiceDto): Promise<void> {
+        const { sellInvoiceId, products } = returnSellInvoiceDto;
+
+        return await this.dataSource.transaction(async manager => {
+            const sellInvoice = await manager.findOne(SellInvoice, { where: { id: sellInvoiceId }, relations: ['products', 'products.product'] });
+            if (!sellInvoice) {
+                throw new NotFoundException('Sell invoice not found');
+            }
+
+            for (const returnProduct of products) {
+                const sellInvoiceProduct = sellInvoice.products.find(p => p.product.id === returnProduct.productId);
+                if (!sellInvoiceProduct) {
+                    throw new NotFoundException(`Product with ID ${returnProduct.productId} not found in sell invoice`);
+                }
+
+                if (sellInvoiceProduct.returnedQuantity + returnProduct.quantity > sellInvoiceProduct.quantity) {
+                    throw new BadRequestException('Returned quantity cannot be greater than sold quantity');
+                }
+
+                sellInvoiceProduct.returnedQuantity += returnProduct.quantity;
+                await manager.save(sellInvoiceProduct);
+
+                const product = await manager.findOne(Product, { where: { id: sellInvoiceProduct.product.id } });
+                if (product) {
+                    product.currentStock += returnProduct.quantity;
+                    await manager.save(product);
+                }
+
+                const purchaseInvoiceProducts = await manager.find(PurchaseInvoiceProduct, {
+                    where: { product: { id: sellInvoiceProduct.product.id } },
+                    order: { id: 'DESC' }
+                });
+
+                let remainingQuantity = returnProduct.quantity;
+                for (const purchaseInvoiceProduct of purchaseInvoiceProducts) {
+                    if (remainingQuantity <= 0) break;
+
+                    const availableSpace = purchaseInvoiceProduct.quantity - purchaseInvoiceProduct.remainingQuantity;
+                    const addQuantity = Math.min(availableSpace, remainingQuantity);
+                    purchaseInvoiceProduct.remainingQuantity += addQuantity;
+                    remainingQuantity -= addQuantity;
+                    await manager.save(purchaseInvoiceProduct);
+                }
+
+                const returnHistory = new ReturnHistory();
+                returnHistory.sellInvoice = sellInvoice;
+                returnHistory.product = sellInvoiceProduct.product;
+                returnHistory.quantityReturned = returnProduct.quantity;
+                returnHistory.returnDate = new Date();
+                returnHistory.reason = returnProduct.reason;
+                await manager.save(returnHistory);
+            }
+        });
+    }
+}

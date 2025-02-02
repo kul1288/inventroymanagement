@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { VendorModule } from './vendor/vendor.module';
 import { ProductModule } from './product/product.module';
 import { PurchaseInvoiceModule } from './purchase-invoice/purchase-invoice.module';
+import { SellInvoiceModule } from './sell-invoice/sell-invoice.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PurchaseInvoiceModule } from './purchase-invoice/purchase-invoice.modul
     VendorModule,
     ProductModule,
     PurchaseInvoiceModule,
+    SellInvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
