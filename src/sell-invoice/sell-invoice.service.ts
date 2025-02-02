@@ -206,7 +206,7 @@ export class SellInvoiceService {
 
         const totalSellResult = await this.dataSource.getRepository(SellInvoice)
             .createQueryBuilder('sellInvoice')
-            .select('SUM(sellInvoiceProduct.quantity * sellInvoiceProduct.rate)', 'totalSell')
+            .select('SUM(sellInvoiceProduct.quantity * sellInvoiceProduct.rate * (1 - sellInvoiceProduct.discount / 100))', 'totalSell')
             .leftJoin('sellInvoice.products', 'sellInvoiceProduct')
             .where('sellInvoice.sellDate BETWEEN :startDate AND :endDate', { startDate, endDate })
             .getRawOne();
@@ -220,7 +220,7 @@ export class SellInvoiceService {
 
         const totalReturnResult = await this.dataSource.getRepository(ReturnHistory)
             .createQueryBuilder('returnHistory')
-            .select('SUM(returnHistory.quantityReturned * sellInvoiceProduct.rate)', 'totalReturn')
+            .select('SUM(returnHistory.quantityReturned * sellInvoiceProduct.rate * (1 - sellInvoiceProduct.discount / 100))', 'totalReturn')
             .leftJoin('returnHistory.sellInvoice', 'sellInvoice')
             .leftJoin('sellInvoice.products', 'sellInvoiceProduct')
             .where('returnHistory.returnDate BETWEEN :startDate AND :endDate', { startDate, endDate })
@@ -236,6 +236,35 @@ export class SellInvoiceService {
             totalSell,
             totalReturn,
             totalProfit
+        };
+    }
+
+    async getTodaySalesReport(): Promise<{ totalInvoices: number, totalAmountSold: number }> {
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(today);
+        endDate.setHours(23, 59, 59, 999);
+        console.log(startDate, endDate);
+        const totalInvoicesResult = await this.sellInvoiceRepository
+            .createQueryBuilder('sellInvoice')
+            .select('COUNT(sellInvoice.id)', 'totalInvoices')
+            .where('sellInvoice.sellDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .getRawOne();
+
+        const totalAmountSoldResult = await this.sellInvoiceRepository
+            .createQueryBuilder('sellInvoice')
+            .select('SUM(sellInvoiceProduct.quantity * sellInvoiceProduct.rate * (1 - sellInvoiceProduct.discount / 100))', 'totalAmountSold')
+            .leftJoin('sellInvoice.products', 'sellInvoiceProduct')
+            .where('sellInvoice.sellDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .getRawOne();
+
+        const totalInvoices = parseInt(totalInvoicesResult.totalInvoices, 10) || 0;
+        const totalAmountSold = parseFloat(totalAmountSoldResult.totalAmountSold) || 0;
+
+        return {
+            totalInvoices,
+            totalAmountSold
         };
     }
 }

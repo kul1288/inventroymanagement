@@ -62,4 +62,9 @@ export class SellInvoiceController {
         }
         return this.sellInvoiceService.getProfitReport(startDate, endDate);
     }
+
+    @Get('report/todaysale')
+    async getTodaySalesReport(): Promise<{ totalInvoices: number, totalAmountSold: number }> {
+        return this.sellInvoiceService.getTodaySalesReport();
+    }
 }
