@@ -7,8 +7,14 @@ import { PurchaseInvoiceProduct } from './purchase-invoice-product.entity';
 import { Product } from '../product/product.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([PurchaseInvoice, PurchaseInvoiceProduct, Product])],
-    providers: [PurchaseInvoiceService],
-    controllers: [PurchaseInvoiceController],
+  imports: [
+    TypeOrmModule.forFeature([
+      PurchaseInvoice,
+      PurchaseInvoiceProduct,
+      Product,
+    ]),
+  ],
+  providers: [PurchaseInvoiceService],
+  controllers: [PurchaseInvoiceController],
 })
-export class PurchaseInvoiceModule { }
+export class PurchaseInvoiceModule {}

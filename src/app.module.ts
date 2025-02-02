@@ -41,4 +41,4 @@ import { SellInvoiceModule } from './sell-invoice/sell-invoice.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

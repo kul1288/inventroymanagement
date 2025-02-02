@@ -8,8 +8,15 @@ import { Product } from '../product/product.entity';
 import { PurchaseInvoiceProduct } from '../purchase-invoice/purchase-invoice-product.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([SellInvoice, SellInvoiceProduct, Product, PurchaseInvoiceProduct])],
-    providers: [SellInvoiceService],
-    controllers: [SellInvoiceController],
+  imports: [
+    TypeOrmModule.forFeature([
+      SellInvoice,
+      SellInvoiceProduct,
+      Product,
+      PurchaseInvoiceProduct,
+    ]),
+  ],
+  providers: [SellInvoiceService],
+  controllers: [SellInvoiceController],
 })
-export class SellInvoiceModule { }
+export class SellInvoiceModule {}

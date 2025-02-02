@@ -1,29 +1,36 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
 
 @Entity()
 export class Product {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ unique: true })
-    @Index()
-    partNo: string;
+  @Column({ unique: true })
+  @Index()
+  partNo: string;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @Column()
-    unit: string;
+  @Column()
+  unit: string;
 
-    @Column()
-    currentStock: number;
+  @Column()
+  currentStock: number;
 
-    @Column()
-    lastPurchasePrice: number;
+  @Column()
+  lastPurchasePrice: number;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    modifiedAt: Date;
+  @UpdateDateColumn()
+  modifiedAt: Date;
 }

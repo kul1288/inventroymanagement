@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards, UsePipes, ValidationPipe, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  Query,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+  BadRequestException,
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -8,44 +21,59 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('products')
 @UseGuards(JwtAuthGuard)
 export class ProductController {
-    constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
-    @Post()
-    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-    async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
-        return this.productService.create(createProductDto);
-    }
+  @Post()
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
+    return this.productService.create(createProductDto);
+  }
 
-    @Get()
-    async findAll(): Promise<Product[]> {
-        return this.productService.findAll();
-    }
+  @Get()
+  async findAll(): Promise<Product[]> {
+    return this.productService.findAll();
+  }
 
-    @Get('search')
-    async findByPartNo(@Query('partNo') partNo: string): Promise<Product[]> {
-        if (!partNo) {
-            throw new BadRequestException('Part number query parameter is required');
-        }
-        return this.productService.findByPartNo(partNo);
+  @Get('search')
+  async findByPartNo(@Query('partNo') partNo: string): Promise<Product[]> {
+    if (!partNo) {
+      throw new BadRequestException('Part number query parameter is required');
     }
+    return this.productService.findByPartNo(partNo);
+  }
 
-    @Get(':id')
-    async findOneById(@Param('id') id: number): Promise<Product> {
-        return this.productService.findOneById(id);
-    }
+  @Get(':id')
+  async findOneById(@Param('id') id: number): Promise<Product> {
+    return this.productService.findOneById(id);
+  }
 
-    @Put(':id')
-    @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, forbidUnknownValues: true }))
-    async update(@Param('id') id: number, @Body() updateProductDto: UpdateProductDto): Promise<Product> {
-        if (!updateProductDto.partNo && !updateProductDto.name && !updateProductDto.unit) {
-            throw new BadRequestException('At least one field must be provided for update');
-        }
-        return this.productService.update(id, updateProductDto);
+  @Put(':id')
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+    }),
+  )
+  async update(
+    @Param('id') id: number,
+    @Body() updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
+    if (
+      !updateProductDto.partNo &&
+      !updateProductDto.name &&
+      !updateProductDto.unit
+    ) {
+      throw new BadRequestException(
+        'At least one field must be provided for update',
+      );
     }
+    return this.productService.update(id, updateProductDto);
+  }
 
-    @Delete(':id')
-    async delete(@Param('id') id: number): Promise<{ message: string }> {
-        await this.productService.delete(id);
-        return { message: 'Product deleted successfully' };
-    }
+  @Delete(':id')
+  async delete(@Param('id') id: number): Promise<{ message: string }> {
+    await this.productService.delete(id);
+    return { message: 'Product deleted successfully' };
+  }
 }
