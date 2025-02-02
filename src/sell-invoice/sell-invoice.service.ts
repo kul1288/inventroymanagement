@@ -339,7 +339,6 @@ export class SellInvoiceService {
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(today);
         endDate.setHours(23, 59, 59, 999);
-        console.log(startDate, endDate);
         const totalInvoicesResult = await this.sellInvoiceRepository
             .createQueryBuilder('sellInvoice')
             .select('COUNT(sellInvoice.id)', 'totalInvoices')
