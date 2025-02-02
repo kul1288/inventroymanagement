@@ -4,6 +4,7 @@ import { CreateSellInvoiceDto } from './dto/create-sell-invoice.dto';
 import { ReturnSellInvoiceDto } from './dto/return-sell-invoice.dto';
 import { SellInvoice } from './sell-invoice.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ReturnHistory } from '../return-history/return-history.entity';
 
 @Controller('sell-invoices')
 @UseGuards(JwtAuthGuard)
@@ -38,5 +39,16 @@ export class SellInvoiceController {
     async returnProduct(@Body() returnSellInvoiceDto: ReturnSellInvoiceDto): Promise<{ message: string }> {
         await this.sellInvoiceService.returnProduct(returnSellInvoiceDto);
         return { message: 'Product returned successfully' };
+    }
+
+    @Get('return-history')
+    async listReturnHistory(
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 10,
+        @Query('startDate') startDate?: string,
+        @Query('endDate') endDate?: string,
+    ): Promise<{ data: ReturnHistory[], count: number }> {
+        limit = limit > 10 ? 10 : limit;
+        return this.sellInvoiceService.listReturnHistory(page, limit, startDate, endDate);
     }
 }

@@ -178,4 +178,23 @@ export class SellInvoiceService {
             }
         });
     }
+
+    async listReturnHistory(page: number = 1, limit: number = 10, startDate?: string, endDate?: string): Promise<{ data: ReturnHistory[], count: number }> {
+        const query = this.dataSource.getRepository(ReturnHistory).createQueryBuilder('returnHistory')
+            .leftJoinAndSelect('returnHistory.sellInvoice', 'sellInvoice')
+            .leftJoinAndSelect('returnHistory.product', 'product')
+            .skip((page - 1) * limit)
+            .take(limit);
+
+        if (startDate) {
+            query.andWhere('returnHistory.returnDate >= :startDate', { startDate });
+        }
+
+        if (endDate) {
+            query.andWhere('returnHistory.returnDate <= :endDate', { endDate });
+        }
+
+        const [data, count] = await query.getManyAndCount();
+        return { data, count };
+    }
 }
