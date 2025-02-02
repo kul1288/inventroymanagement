@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UsePipes, ValidationPipe, UseGuards, Delete, Param, Get, Query, Patch } from '@nestjs/common';
+import { Controller, Post, Body, UsePipes, ValidationPipe, UseGuards, Delete, Param, Get, Query, Patch, BadRequestException } from '@nestjs/common';
 import { SellInvoiceService } from './sell-invoice.service';
 import { CreateSellInvoiceDto } from './dto/create-sell-invoice.dto';
 import { ReturnSellInvoiceDto } from './dto/return-sell-invoice.dto';
@@ -50,5 +50,16 @@ export class SellInvoiceController {
     ): Promise<{ data: ReturnHistory[], count: number }> {
         limit = limit > 10 ? 10 : limit;
         return this.sellInvoiceService.listReturnHistory(page, limit, startDate, endDate);
+    }
+
+    @Get('report/profit')
+    async getProfitReport(
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string,
+    ): Promise<{ totalPurchase: number, totalSell: number, totalReturn: number, totalProfit: number }> {
+        if (!startDate || !endDate) {
+            throw new BadRequestException('Start date and end date are required');
+        }
+        return this.sellInvoiceService.getProfitReport(startDate, endDate);
     }
 }

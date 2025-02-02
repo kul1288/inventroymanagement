@@ -6,6 +6,7 @@ import { SellInvoiceProduct } from './sell-invoice-product.entity';
 import { CreateSellInvoiceDto } from './dto/create-sell-invoice.dto';
 import { ReturnSellInvoiceDto } from './dto/return-sell-invoice.dto';
 import { Product } from '../product/product.entity';
+import { PurchaseInvoice } from '../purchase-invoice/purchase-invoice.entity';
 import { PurchaseInvoiceProduct } from '../purchase-invoice/purchase-invoice-product.entity';
 import { ReturnHistory } from '../return-history/return-history.entity';
 
@@ -196,5 +197,45 @@ export class SellInvoiceService {
 
         const [data, count] = await query.getManyAndCount();
         return { data, count };
+    }
+
+    async getProfitReport(startDate: string, endDate: string): Promise<{ totalPurchase: number, totalSell: number, totalReturn: number, totalProfit: number }> {
+        if (!startDate || !endDate) {
+            throw new BadRequestException('Start date and end date are required');
+        }
+
+        const totalSellResult = await this.dataSource.getRepository(SellInvoice)
+            .createQueryBuilder('sellInvoice')
+            .select('SUM(sellInvoiceProduct.quantity * sellInvoiceProduct.rate)', 'totalSell')
+            .leftJoin('sellInvoice.products', 'sellInvoiceProduct')
+            .where('sellInvoice.sellDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .getRawOne();
+
+        const totalPurchaseResult = await this.dataSource.getRepository(PurchaseInvoiceProduct)
+            .createQueryBuilder('purchaseInvoiceProduct')
+            .select('SUM(purchaseInvoiceProduct.quantity * purchaseInvoiceProduct.rate)', 'totalPurchase')
+            .leftJoin('purchaseInvoiceProduct.purchaseInvoice', 'purchaseInvoice')
+            .where('purchaseInvoice.purchaseDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .getRawOne();
+
+        const totalReturnResult = await this.dataSource.getRepository(ReturnHistory)
+            .createQueryBuilder('returnHistory')
+            .select('SUM(returnHistory.quantityReturned * sellInvoiceProduct.rate)', 'totalReturn')
+            .leftJoin('returnHistory.sellInvoice', 'sellInvoice')
+            .leftJoin('sellInvoice.products', 'sellInvoiceProduct')
+            .where('returnHistory.returnDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .getRawOne();
+
+        const totalSell = parseFloat(totalSellResult.totalSell) || 0;
+        const totalPurchase = parseFloat(totalPurchaseResult.totalPurchase) || 0;
+        const totalReturn = parseFloat(totalReturnResult.totalReturn) || 0;
+        const totalProfit = totalSell - totalPurchase - totalReturn;
+
+        return {
+            totalPurchase,
+            totalSell,
+            totalReturn,
+            totalProfit
+        };
     }
 }
