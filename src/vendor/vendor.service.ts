@@ -14,7 +14,7 @@ export class VendorService {
   constructor(
     @InjectRepository(Vendor)
     private vendorsRepository: Repository<Vendor>,
-  ) {}
+  ) { }
 
   async create(createVendorDto: CreateVendorDto): Promise<Vendor> {
     const existingVendor = await this.vendorsRepository.findOne({
@@ -28,7 +28,11 @@ export class VendorService {
   }
 
   async findAll(): Promise<Vendor[]> {
-    return this.vendorsRepository.find();
+    return this.vendorsRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 
   async findOne(id: number): Promise<Vendor> {

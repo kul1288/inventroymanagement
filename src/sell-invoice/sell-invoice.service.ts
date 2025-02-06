@@ -144,6 +144,7 @@ export class SellInvoiceService {
             .createQueryBuilder('sellInvoice')
             .leftJoinAndSelect('sellInvoice.products', 'products')
             .leftJoinAndSelect('products.product', 'product')
+            .orderBy('sellInvoice.sellDate', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 
@@ -246,6 +247,7 @@ export class SellInvoiceService {
             .createQueryBuilder('returnHistory')
             .leftJoinAndSelect('returnHistory.sellInvoice', 'sellInvoice')
             .leftJoinAndSelect('returnHistory.product', 'product')
+            .orderBy('returnHistory.returnDate', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 

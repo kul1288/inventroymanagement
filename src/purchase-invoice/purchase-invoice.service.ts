@@ -18,7 +18,7 @@ export class PurchaseInvoiceService {
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   async create(
     createPurchaseInvoiceDto: CreatePurchaseInvoiceDto,
@@ -69,6 +69,7 @@ export class PurchaseInvoiceService {
       .createQueryBuilder('purchaseInvoice')
       .leftJoinAndSelect('purchaseInvoice.products', 'products')
       .leftJoinAndSelect('products.product', 'product')
+      .orderBy('purchaseInvoice.purchaseDate', 'DESC')
       .skip((page - 1) * limit)
       .take(limit);
 

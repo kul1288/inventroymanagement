@@ -14,7 +14,7 @@ export class ProductService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-  ) {}
+  ) { }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
     const existingProduct = await this.productRepository.findOne({
@@ -27,8 +27,13 @@ export class ProductService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(): Promise<Product[]> {
-    return this.productRepository.find();
+  async findAll(page: number = 1, limit: number = 10): Promise<{ data: Product[], count: number }> {
+    const [data, count] = await this.productRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' }, // Order by creation date in descending order
+    });
+    return { data, count };
   }
 
   async findByPartNo(partNo: string): Promise<Product[]> {
