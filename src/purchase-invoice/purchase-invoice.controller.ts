@@ -20,7 +20,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class PurchaseInvoiceController {
   constructor(
     private readonly purchaseInvoiceService: PurchaseInvoiceService,
-  ) {}
+  ) { }
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
@@ -39,6 +39,11 @@ export class PurchaseInvoiceController {
   ): Promise<{ data: PurchaseInvoice[]; count: number }> {
     limit = limit || 10;
     return this.purchaseInvoiceService.findAll(page, limit, startDate, endDate);
+  }
+
+  @Get(':id')
+  async findOneById(@Param('id') id: number): Promise<PurchaseInvoice> {
+    return this.purchaseInvoiceService.findOneById(id);
   }
 
   @Delete(':id')

@@ -87,6 +87,17 @@ export class PurchaseInvoiceService {
     return { data, count };
   }
 
+  async findOneById(id: number): Promise<PurchaseInvoice> {
+    const purchaseInvoice = await this.purchaseInvoiceRepository.findOne({
+      where: { id },
+      relations: ['products', 'products.product', 'vendor'],
+    });
+    if (!purchaseInvoice) {
+      throw new NotFoundException('Purchase invoice not found');
+    }
+    return purchaseInvoice;
+  }
+
   async delete(id: number): Promise<void> {
     return await this.dataSource.transaction(async (manager) => {
       const purchaseInvoice = await manager.findOne(PurchaseInvoice, {
