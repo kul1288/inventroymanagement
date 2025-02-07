@@ -38,6 +38,9 @@ export class SellInvoice {
   @Column({ nullable: true })
   customerAddress: string;
 
+  @Column({ nullable: true })
+  customerGstNo: string;
+
   @Column({
     type: 'enum',
     enum: InvoiceType,

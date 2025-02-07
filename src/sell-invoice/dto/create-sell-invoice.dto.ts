@@ -58,6 +58,10 @@ class CustomerInfoDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsOptional()
+  @IsString()
+  gstNo?: string;
 }
 
 export class CreateSellInvoiceDto {

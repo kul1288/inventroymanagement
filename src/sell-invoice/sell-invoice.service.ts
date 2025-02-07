@@ -34,7 +34,14 @@ export class SellInvoiceService {
             sellInvoice.customerPhoneNumber = customer.phoneNumber ?? '';
             sellInvoice.customerEmail = customer.email ?? '';
             sellInvoice.customerAddress = customer.address ?? '';
-            sellInvoice.sellDate = new Date(sellDate);
+            sellInvoice.customerGstNo = customer.gstNo ?? '';
+
+            // Add current time to sell date
+            const date = new Date(sellDate);
+            const now = new Date();
+            date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            sellInvoice.sellDate = date;
+
             sellInvoice.tax = tax ? 18 : 0;
             sellInvoice.type = type;
             sellInvoice.products = [];

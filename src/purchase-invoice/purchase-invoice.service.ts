@@ -29,7 +29,13 @@ export class PurchaseInvoiceService {
     return await this.dataSource.transaction(async (manager) => {
       const purchaseInvoice = new PurchaseInvoice();
       purchaseInvoice.vendor = { id: vendorId } as any;
-      purchaseInvoice.purchaseDate = purchaseDate;
+
+      // Add current time to purchase date
+      const date = new Date(purchaseDate);
+      const now = new Date();
+      date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      purchaseInvoice.purchaseDate = date;
+
       purchaseInvoice.tax = tax ? 18 : 0;
       purchaseInvoice.type = type;
       purchaseInvoice.products = products.map((productDto) => {

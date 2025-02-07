@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsPhoneNumber,
   IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class CreateVendorDto {
@@ -18,4 +19,8 @@ export class CreateVendorDto {
 
   @IsPhoneNumber(undefined)
   phoneno: string;
+
+  @IsOptional()
+  @IsString()
+  gstNo?: string;
 }

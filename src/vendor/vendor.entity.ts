@@ -28,6 +28,9 @@ export class Vendor {
   @IsPhoneNumber(undefined) // Allow any country code
   phoneno: string;
 
+  @Column({ nullable: true })
+  gstNo: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
