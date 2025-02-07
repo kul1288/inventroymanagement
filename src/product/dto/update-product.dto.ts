@@ -1,4 +1,4 @@
-import { IsOptional, IsString, ValidateIf } from 'class-validator';
+import { IsOptional, IsString, ValidateIf, IsNumber, Min } from 'class-validator';
 
 export class UpdateProductDto {
   @ValidateIf(
@@ -24,4 +24,9 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   unit?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minimumQuantity?: number;
 }

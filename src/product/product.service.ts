@@ -77,4 +77,25 @@ export class ProductService {
     }
     await this.productRepository.remove(product);
   }
+
+  async findLowStockProducts(page: number = 1, limit: number = 10): Promise<{ data: Product[], count: number }> {
+    const query = this.productRepository
+      .createQueryBuilder('product')
+      .where('product.minimumQuantity IS NOT NULL')
+      .andWhere('product.currentStock <= product.minimumQuantity')
+      .orderBy('product.currentStock', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, count] = await query.getManyAndCount();
+    return { data, count };
+  }
+
+  async getLowStockCount(): Promise<number> {
+    return await this.productRepository
+      .createQueryBuilder('product')
+      .where('product.minimumQuantity IS NOT NULL')
+      .andWhere('product.currentStock <= product.minimumQuantity')
+      .getCount();
+  }
 }

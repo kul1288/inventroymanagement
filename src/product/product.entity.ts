@@ -28,6 +28,9 @@ export class Product {
   @Column()
   lastPurchasePrice: number;
 
+  @Column({ nullable: true })
+  minimumQuantity: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

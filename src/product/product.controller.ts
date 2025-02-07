@@ -38,6 +38,21 @@ export class ProductController {
     return this.productService.findAll(page, limit);
   }
 
+  @Get('low-stock/count')
+  async getLowStockCount(): Promise<{ count: number }> {
+    const count = await this.productService.getLowStockCount();
+    return { count };
+  }
+
+  @Get('low-stock')
+  async getLowStockProducts(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ): Promise<{ data: Product[], count: number }> {
+    limit = limit > 10 ? 10 : limit;
+    return this.productService.findLowStockProducts(page, limit);
+  }
+
   @Get('search')
   async findByPartNo(@Query('partNo') partNo: string): Promise<Product[]> {
     if (!partNo) {
@@ -66,7 +81,8 @@ export class ProductController {
     if (
       !updateProductDto.partNo &&
       !updateProductDto.name &&
-      !updateProductDto.unit
+      !updateProductDto.unit &&
+      updateProductDto.minimumQuantity === undefined
     ) {
       throw new BadRequestException(
         'At least one field must be provided for update',
