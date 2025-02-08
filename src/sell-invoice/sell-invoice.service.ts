@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Not } from 'typeorm';
-import { SellInvoice } from './sell-invoice.entity';
+import { InvoiceType, SellInvoice } from './sell-invoice.entity';
 import { SellInvoiceProduct } from './sell-invoice-product.entity';
 import { CreateSellInvoiceDto } from './dto/create-sell-invoice.dto';
 import { ReturnSellInvoiceDto } from './dto/return-sell-invoice.dto';
@@ -377,6 +377,26 @@ export class SellInvoiceService {
         return {
             totalInvoices,
             totalAmountSold,
+        };
+    }
+
+    async getTodayCreditSales(): Promise<{ totalCreditSales: number }> {
+        const today = new Date();
+        const startDate = new Date(today);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(today);
+        endDate.setHours(23, 59, 59, 999);
+
+        const creditSalesResult = await this.sellInvoiceRepository
+            .createQueryBuilder('sellInvoice')
+            .select('SUM(sellInvoiceProduct.quantity * sellInvoiceProduct.rate * (1 - sellInvoiceProduct.discount / 100))', 'totalCreditSales')
+            .leftJoin('sellInvoice.products', 'sellInvoiceProduct')
+            .where('sellInvoice.sellDate BETWEEN :startDate AND :endDate', { startDate, endDate })
+            .andWhere('sellInvoice.type = :type', { type: InvoiceType.CREDIT })
+            .getRawOne();
+
+        return {
+            totalCreditSales: parseFloat(creditSalesResult.totalCreditSales) || 0
         };
     }
 }

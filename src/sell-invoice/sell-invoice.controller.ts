@@ -22,7 +22,7 @@ import { ReturnHistory } from '../return-history/return-history.entity';
 @Controller('sell-invoices')
 @UseGuards(JwtAuthGuard)
 export class SellInvoiceController {
-  constructor(private readonly sellInvoiceService: SellInvoiceService) {}
+  constructor(private readonly sellInvoiceService: SellInvoiceService) { }
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
@@ -96,5 +96,10 @@ export class SellInvoiceController {
     totalAmountSold: number;
   }> {
     return this.sellInvoiceService.getTodaySalesReport();
+  }
+
+  @Get('report/today-credit-sales')
+  async getTodayCreditSales(): Promise<{ totalCreditSales: number }> {
+    return this.sellInvoiceService.getTodayCreditSales();
   }
 }
