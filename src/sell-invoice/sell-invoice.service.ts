@@ -52,7 +52,7 @@ export class SellInvoiceService {
                 });
                 if (!product || product.currentStock < productDto.quantity) {
                     throw new BadRequestException(
-                        'Insufficient stock for product ID ' + productDto.productId,
+                        'Insufficient stock for Part no ' + product?.partNo + ' (Product Id: ' + productDto.productId + ')',
                     );
                 }
 
