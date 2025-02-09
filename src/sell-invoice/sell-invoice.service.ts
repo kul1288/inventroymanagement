@@ -106,6 +106,12 @@ export class SellInvoiceService {
             }
 
             for (const sellInvoiceProduct of sellInvoice.products) {
+                if (sellInvoiceProduct.returnedQuantity > 0) {
+                    throw new BadRequestException('Cannot delete sell invoice with returned products');
+                }
+            }
+
+            for (const sellInvoiceProduct of sellInvoice.products) {
                 const product = await manager.findOne(Product, {
                     where: { id: sellInvoiceProduct.product.id },
                 });
