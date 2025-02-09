@@ -82,7 +82,8 @@ export class ProductController {
       !updateProductDto.partNo &&
       !updateProductDto.name &&
       !updateProductDto.unit &&
-      updateProductDto.minimumQuantity === undefined
+      updateProductDto.minimumQuantity === undefined &&
+      !updateProductDto.commonName
     ) {
       throw new BadRequestException(
         'At least one field must be provided for update',

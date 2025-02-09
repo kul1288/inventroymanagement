@@ -31,6 +31,9 @@ export class Product {
   @Column({ nullable: true })
   minimumQuantity: number;
 
+  @Column({ nullable: true })
+  commonName?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -25,6 +25,14 @@ export class UpdateProductDto {
   @IsString()
   unit?: string;
 
+  @ValidateIf(
+    (o) =>
+      o.partNo !== undefined || o.name !== undefined || o.unit !== undefined,
+  )
+  @IsOptional()
+  @IsString()
+  commonName?: string;
+
   @IsOptional()
   @IsNumber()
   @Min(0)

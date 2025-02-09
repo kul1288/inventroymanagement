@@ -17,4 +17,8 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0)
   minimumQuantity?: number;
+
+  @IsOptional()
+  @IsString()
+  commonName?: string;
 }
